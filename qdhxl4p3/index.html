@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#141519">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Дартс — жизни</title>
+<style>
+  :root{
+    --bg:#141519;
+    --card:#1e2027;
+    --card2:#262933;
+    --line:#33373f;
+    --text:#eef0f4;
+    --dim:#9aa0ac;
+    --green:#46a758;
+    --red:#e5484d;
+    --blue:#5b8def;
+    --gold:#f0b429;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    font-size:17px;line-height:1.35;
+    padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 14px);
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:560px;margin:0 auto;padding:14px 14px 0}
+  h1{font-size:22px;margin:4px 0 2px}
+  .sub{color:var(--dim);font-size:14px;margin:0 0 18px}
+  h2{font-size:15px;margin:22px 0 10px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.6px}
+
+  button{font-family:inherit;font-size:17px;color:var(--text);border:0;border-radius:12px;background:var(--card2);padding:13px 14px;cursor:pointer}
+  button:active{transform:scale(.98)}
+  .btn-main{width:100%;background:var(--green);color:#fff;font-weight:700;font-size:19px;padding:17px;margin-top:20px}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--dim);width:100%}
+
+  input[type=text]{
+    font-family:inherit;font-size:17px;color:var(--text);background:var(--card);
+    border:1px solid var(--line);border-radius:12px;padding:13px 14px;width:100%;
+  }
+  input:focus{outline:none;border-color:var(--green)}
+  .pl{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .pl input{flex:1}
+  .del{width:48px;flex:none;background:var(--card);color:var(--dim);font-size:22px;padding:12px 0;text-align:center}
+
+  .opt{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+  .opt .lbl{font-size:15px}
+  .opt .lbl small{display:block;color:var(--dim);font-size:12.5px;margin-top:2px}
+  .seg{display:flex;gap:4px;background:var(--bg);border-radius:10px;padding:3px;flex:none}
+  .seg button{padding:8px 14px;font-size:15px;background:transparent;border-radius:8px;color:var(--dim)}
+  .seg button.on{background:var(--card2);color:var(--text);font-weight:700}
+  .sw{width:52px;height:31px;border-radius:16px;background:var(--line);position:relative;flex:none;padding:0}
+  .sw i{position:absolute;top:3px;left:3px;width:25px;height:25px;border-radius:50%;background:#fff;transition:.15s}
+  .sw.on{background:var(--green)}
+  .sw.on i{left:24px}
+
+  .card{background:var(--card);border-radius:16px;padding:12px 14px;margin-bottom:10px;border:2px solid transparent}
+  .card.out{opacity:.4}
+  .card.now{border-color:var(--blue);background:#1b2233}
+  .card.tap{cursor:pointer}
+  .chead{display:flex;align-items:center;gap:11px}
+  .sect{flex:none;width:46px;height:46px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:800;cursor:pointer}
+  .card.now .sect{background:var(--blue);color:#fff}
+  .nm{flex:1;min-width:0}
+  .nm b{display:block;font-size:17.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nm .wins{color:var(--gold);font-weight:600;font-size:13px}
+  .nm span{font-size:12.5px;color:var(--dim);display:block}
+  .card.now .nm span{color:#9ec1ff}
+  .lives{flex:none;display:flex;align-items:baseline;gap:5px}
+  .lives .n{font-size:29px;font-weight:800;font-variant-numeric:tabular-nums}
+  .lives .h{font-size:19px;color:var(--red)}
+  .card.out .lives .n{color:var(--dim)}
+
+  .throw{margin-top:12px;border-top:1px solid #2f3646;padding-top:11px}
+  .slots{display:flex;gap:6px;margin-bottom:9px}
+  .slot{flex:1;background:#151b28;border:1px solid #2f3646;border-radius:10px;padding:8px 4px;text-align:center;font-size:13px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .slot.done{color:var(--text);border-color:var(--blue)}
+  .trow{display:flex;gap:7px;margin-bottom:7px}
+  .trow button{flex:1;font-size:14.5px;padding:12px 4px;font-weight:600;white-space:nowrap}
+  .gr{background:#17301f;color:#63d183}
+  .bl{background:#4a1418;color:#ff9ea1}
+  .ms{background:var(--card2);color:var(--dim)}
+  .who{font-size:12.5px;color:var(--dim);margin:9px 0 6px}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:2px}
+  .chips button{background:#3a1f22;color:#ff8a8e;font-size:14.5px;padding:11px 13px;font-weight:600}
+  .pass{width:100%;margin-top:10px;background:var(--blue);color:#fff;font-weight:700}
+  .hint{font-size:12.5px;color:var(--dim);margin:8px 2px 0}
+
+  .board{display:block;width:100%;max-width:340px;margin:0 auto}
+  .board .wedge{cursor:pointer}
+  .board .num{font-size:15px;font-weight:700;fill:#e7eaf0;pointer-events:none}
+  .board .num.off{fill:#5a606b}
+
+  .tbl{width:100%;border-collapse:collapse;font-size:14.5px}
+  .tbl th{color:var(--dim);font-weight:600;font-size:12px;text-align:right;padding:6px 3px;border-bottom:1px solid var(--line)}
+  .tbl th:first-child{text-align:left}
+  .tbl td{padding:9px 3px;text-align:right;border-bottom:1px solid #23262e;font-variant-numeric:tabular-nums}
+  .tbl td:first-child{text-align:left;font-weight:600}
+
+  .bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .bar button{flex:1 1 40%;font-size:15px;padding:12px;background:var(--card);color:var(--dim);border:1px solid var(--line);white-space:nowrap}
+  .bar button.wide{flex:1 1 100%;color:var(--text);border-color:var(--green)}
+  .live{background:#1b2330;border:1px solid #3b5b8c;border-radius:16px;padding:14px 16px;margin-bottom:16px}
+  .live b{display:block;font-size:17px}
+  .live span{display:block;color:var(--dim);font-size:14px;margin-top:2px}
+  .live .btn-main{margin-top:12px}
+  .win{background:#1c2620;border:2px solid var(--green);border-radius:16px;padding:16px;text-align:center;margin-bottom:12px}
+  .win b{font-size:21px;display:block;margin-bottom:3px}
+  .win span{color:var(--dim);font-size:14px;display:block;margin-bottom:12px}
+  .win button{background:var(--green);color:#fff;font-weight:700;width:100%;padding:14px}
+  .win .alt{background:transparent;border:1px solid #35543f;color:#7fc48f;margin-top:8px}
+  .note{color:var(--dim);font-size:13px;margin:12px 2px 0;line-height:1.45}
+  .note b{color:var(--text);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+var S=null;
+var clearArm=false;
+var screenName='';                     /* '', 'rules', 'stats', 'edit' */
+var editIdx=-1;
+var setup={ names:['','',''], lives:3, skip20:true, draw:'auto', rings:false, voice:true };
+
+/* сектора по кругу мишени, по часовой стрелке от двадцатки */
+var RING=[20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
+
+var hist={};   /* постоянная статистика по именам, живёт между вечерами */
+function save(){ try{ localStorage.setItem('dartslives', JSON.stringify({S:S,setup:setup})); }catch(e){} }
+function saveHist(){
+  var j=JSON.stringify(hist);
+  try{ localStorage.setItem('dartshist', j); }catch(e){}
+  /* в приложении держим вторую копию в памяти телефона — на случай чистки данных браузера */
+  try{ if(window.AndroidApp && AndroidApp.backup) AndroidApp.backup(j); }catch(e){}
+}
+function loadHist(){
+  try{ hist=JSON.parse(localStorage.getItem('dartshist')||'{}')||{}; }catch(e){ hist={}; }
+  var empty=true; for(var k in hist) if(hist.hasOwnProperty(k)){ empty=false; break; }
+  if(empty){
+    try{
+      if(window.AndroidApp && AndroidApp.restore){
+        var b=JSON.parse(AndroidApp.restore()||'{}')||{};
+        for(var k2 in b) if(b.hasOwnProperty(k2)) hist[k2]=b[k2];
+      }
+    }catch(e){}
+  }
+}
+function nameId(n){ return n.trim().toLowerCase(); }
+function histRow(name){
+  var id=nameId(name);
+  if(!hist[id]) hist[id]={ name:name.trim(), games:0, wins:0, dmg:0, bull:0, green:0, miss:0, darts:0 };
+  hist[id].name=name.trim();
+  return hist[id];
+}
+/* записываем партию в постоянную статистику; помним запись, чтобы «Отменить» её сняло */
+function recordHistory(winnerIdx){
+  var rec=[];
+  for(var i=0;i<S.players.length;i++){
+    var p=S.players[i];
+    var d={ id:nameId(p.name), games:1, wins:(i===winnerIdx?1:0),
+            dmg:p.dmg, bull:p.bull, green:p.green, miss:p.miss, darts:p.darts };
+    var r=histRow(p.name);
+    r.games+=d.games; r.wins+=d.wins; r.dmg+=d.dmg; r.bull+=d.bull; r.green+=d.green; r.miss+=d.miss; r.darts+=d.darts;
+    rec.push(d);
+  }
+  S.lastRecord=rec; saveHist();
+}
+function unrecordHistory(){
+  if(!S.lastRecord) return;
+  for(var i=0;i<S.lastRecord.length;i++){
+    var d=S.lastRecord[i], r=hist[d.id];
+    if(!r) continue;
+    r.games-=d.games; r.wins-=d.wins; r.dmg-=d.dmg; r.bull-=d.bull; r.green-=d.green; r.miss-=d.miss; r.darts-=d.darts;
+    if(r.games<=0) delete hist[d.id];
+  }
+  S.lastRecord=null; saveHist();
+}
+function load(){
+  try{ var d=JSON.parse(localStorage.getItem('dartslives')||'null');
+    if(d){ if(d.setup) setup=d.setup; if(d.S) S=d.S; }
+  }catch(e){}
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+/* ---------- голос, вибрация, экран ---------- */
+function say(text){
+  if(!S || !S.voice || !text) return;
+  try{
+    /* в приложении для телефона голос идёт через сам телефон */
+    if(window.AndroidApp && AndroidApp.speak){ AndroidApp.speak(text); return; }
+    if(!window.speechSynthesis) return;
+    speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(text);
+    u.lang='ru-RU'; u.rate=1.05;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function buzz(pattern){
+  if(!S || !S.voice) return;
+  try{
+    if(window.AndroidApp && AndroidApp.vibrate){ AndroidApp.vibrate(Math.max.apply(null,[].concat(pattern))); return; }
+    if(navigator.vibrate) navigator.vibrate(pattern);
+  }catch(e){}
+}
+/* кнопка «назад» телефона: закрываем открытый экран, а не выходим из игры */
+function androidBack(){
+  if(screenName){ closeScreen(); return true; }
+  return false;
+}
+var wakeLock=null;
+function keepAwake(on){
+  try{
+    if(on){
+      if(!navigator.wakeLock || wakeLock) return;
+      navigator.wakeLock.request('screen').then(function(l){
+        wakeLock=l;
+        l.addEventListener('release',function(){ wakeLock=null; });
+      }).catch(function(){});
+    } else if(wakeLock){
+      wakeLock.release().catch(function(){});
+      wakeLock=null;
+    }
+  }catch(e){}
+}
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='visible' && S && S.phase==='game') keepAwake(true);
+});
+
+/* ---------- первый экран ---------- */
+function viewSetup(){
+  var h='<h1>Дартс — жизни</h1><p class="sub">Считаем жизни и броски, пока вы играете</p>';
+  if(S){  /* партия не потеряна — можно вернуться одной кнопкой */
+    h+='<div class="live"><b>Партия идёт</b><span>Настройки ниже применятся к новой партии</span>';
+    h+='<button class="btn-main" style="margin-top:12px" onclick="closeScreen()">Вернуться к партии</button></div>';
+  }
+  h+='<h2>Игроки</h2>';
+  for(var i=0;i<setup.names.length;i++){
+    h+='<div class="pl"><input type="text" placeholder="Игрок '+(i+1)+'" value="'+esc(setup.names[i])+'" oninput="setName('+i+',this.value)">';
+    h+= setup.names.length>2 ? '<button class="del" onclick="delName('+i+')">&times;</button>' : '';
+    h+='</div>';
+  }
+  if(setup.names.length<10) h+='<button class="btn-ghost" onclick="addName()">+ добавить игрока</button>';
+
+  h+='<h2>Правила</h2>';
+  h+=opt('Жизней в начале','', seg([3,4,5,7], setup.lives, 'setLives'));
+  h+=optSw('Кольца бьют сильнее','Попал в чужой сектор: обычное −1, удвоение −2, утроение −3', setup.rings, 'togRings');
+  h+=opt('Как игроки получают сектор','',
+    '<div class="seg"><button class="'+(setup.draw==='throw'?'':'on')+'" onclick="setDraw(\'auto\')">сам раздам</button>'+
+    '<button class="'+(setup.draw==='throw'?'on':'')+'" onclick="setDraw(\'throw\')">броском</button></div>');
+  if(setup.draw==='throw') h+='<p class="note" style="margin:-2px 2px 10px">Порядок игроков перемешаю, дальше каждый кидает один дротик — куда попал, тот сектор его. Занятый номер выпал — перебрасывает.</p>';
+  else h+=optSw('Двадцатку не раздавать','В неё попадают легче всех — её хозяина выбивают быстрее', setup.skip20, 'togSkip20');
+  h+=optSw('Голос и вибрация','Объявляет, чей ход, кто потерял жизнь и кто выбыл', setup.voice, 'togVoice');
+
+  h+='<button class="btn-main" onclick="start()">'+(S?'Начать новую партию':'Начать игру')+'</button>';
+  if(S) h+='<p class="note" style="margin-top:8px">Новая партия обнулит счёт текущей. Статистика за всё время останется.</p>';
+  h+='<button class="btn-ghost" style="margin-top:8px" onclick="openScreen(\'rules\')">Правила игры</button>';
+  h+='<button class="btn-ghost" style="margin-top:8px" onclick="openScreen(\'hist\')">Статистика за всё время</button>';
+  h+='<p class="note">Экран не гаснет, пока идёт партия. Счёт сохраняется — можно закрыть страницу и вернуться.</p>';
+  return h;
+}
+function opt(t,s,inner){ return '<div class="opt"><div class="lbl">'+t+(s?'<small>'+s+'</small>':'')+'</div>'+inner+'</div>'; }
+function optSw(t,s,on,fn){
+  return '<div class="opt" onclick="'+fn+'()"><div class="lbl">'+t+(s?'<small>'+s+'</small>':'')+'</div>'+
+         '<button class="sw'+(on?' on':'')+'"><i></i></button></div>';
+}
+function seg(vals,cur,fn){
+  var h='<div class="seg">';
+  for(var i=0;i<vals.length;i++) h+='<button class="'+(vals[i]==cur?'on':'')+'" onclick="'+fn+'('+vals[i]+')">'+vals[i]+'</button>';
+  return h+'</div>';
+}
+function setName(i,v){ setup.names[i]=v; save(); }
+function addName(){ setup.names.push(''); render(); }
+function delName(i){ setup.names.splice(i,1); render(); }
+function setLives(n){ setup.lives=n; render(); }
+function togSkip20(){ setup.skip20=!setup.skip20; render(); }
+function setDraw(v){ setup.draw=v; render(); }
+function togRings(){ setup.rings=!setup.rings; render(); }
+function togVoice(){ setup.voice=!setup.voice; if(S) S.voice=setup.voice; render(); }
+
+/* ---------- раздача секторов ---------- */
+function deal(n,skip20){
+  var ring=RING.slice();
+  if(skip20) ring=ring.filter(function(v){ return v!==20; });
+  var L=ring.length, start=Math.floor(Math.random()*L), used={}, out=[];
+  for(var i=0;i<n;i++){
+    var pos=(start+Math.round(i*L/n))%L;
+    while(used[pos]) pos=(pos+1)%L;
+    used[pos]=1; out.push(ring[pos]);
+  }
+  for(var j=out.length-1;j>0;j--){ var k=Math.floor(Math.random()*(j+1)); var t=out[j]; out[j]=out[k]; out[k]=t; }
+  return out;
+}
+function blankStats(p){ p.dmg=0; p.bull=0; p.green=0; p.miss=0; p.darts=0; return p; }
+function start(){
+  var byThrow = setup.draw==='throw';
+  var sec = byThrow ? [] : deal(setup.names.length,setup.skip20), pl=[];
+  for(var i=0;i<setup.names.length;i++){
+    pl.push(blankStats({ name:(setup.names[i]||'').trim() || ('Игрок '+(i+1)),
+      lives:setup.lives, sector:byThrow?0:sec[i], last:[], wins:0 }));
+  }
+  S={ players:pl, startLives:setup.lives, skip20:(byThrow?false:setup.skip20), draw:setup.draw,
+      rings:setup.rings, voice:setup.voice, phase: byThrow?'draw':'game',
+      turn:0, darts:[], pick:-1, winCounted:false, undo:[] };
+  if(byThrow) shuffleList();
+  screenName=''; editIdx=-1;
+  keepAwake(true);
+  if(S.phase==='game') say('Начинаем. Ходит '+S.players[0].name);
+  render();
+}
+function shuffleList(){
+  var a=S.players;
+  for(var i=a.length-1;i>0;i--){ var k=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[k]; a[k]=t; }
+}
+function again(){
+  S.undo=[]; S.darts=[]; S.pick=-1; S.turn=0; S.winCounted=false; screenName='';
+  for(var i=0;i<S.players.length;i++){
+    var p=S.players[i];
+    p.lives=S.startLives; p.last=[]; blankStats(p);
+  }
+  if(S.draw==='throw'){
+    S.phase='draw'; shuffleList();
+    for(var k=0;k<S.players.length;k++) S.players[k].sector=0;
+  } else {
+    var sec=deal(S.players.length,S.skip20);
+    for(var j=0;j<S.players.length;j++) S.players[j].sector=sec[j];
+  }
+  keepAwake(true);
+  if(S.phase==='game') say('Новая партия. Ходит '+S.players[0].name);
+  save(); render();
+}
+
+/* ---------- мишень ---------- */
+function boardSVG(handler, isOff){
+  var cx=170, cy=170, R=150, rNum=132, h='';
+  h+='<svg class="board" viewBox="0 0 340 340" xmlns="http://www.w3.org/2000/svg">';
+  h+='<circle cx="170" cy="170" r="158" fill="#101216"/>';
+  for(var i=0;i<20;i++){
+    var v=RING[i];
+    var a1=(-90+i*18-9)*Math.PI/180, a2=(-90+i*18+9)*Math.PI/180, am=(-90+i*18)*Math.PI/180;
+    var x1=cx+R*Math.cos(a1), y1=cy+R*Math.sin(a1), x2=cx+R*Math.cos(a2), y2=cy+R*Math.sin(a2);
+    var off=isOff(v);
+    var fill= off ? '#191b21' : (i%2 ? '#2b303b' : '#21242c');
+    h+='<path class="wedge" d="M'+cx+','+cy+' L'+x1.toFixed(1)+','+y1.toFixed(1)+' A'+R+','+R+' 0 0 1 '+x2.toFixed(1)+','+y2.toFixed(1)+' Z" '
+      +'fill="'+fill+'" stroke="#0e1013" stroke-width="1"'
+      +(off?'':' onclick="'+handler+'('+v+')"')+'/>';
+    var tx=cx+rNum*Math.cos(am), ty=cy+rNum*Math.sin(am)+5;
+    h+='<text class="num'+(off?' off':'')+'" x="'+tx.toFixed(1)+'" y="'+ty.toFixed(1)+'" text-anchor="middle">'+v+'</text>';
+  }
+  h+='<circle cx="170" cy="170" r="26" fill="#1d3a24" stroke="#0e1013"/>';
+  h+='<circle cx="170" cy="170" r="12" fill="#5b1a1e" stroke="#0e1013"/>';
+  h+='</svg>';
+  return h;
+}
+function takenBy(v){
+  for(var k=0;k<S.players.length;k++) if(S.players[k].sector===v) return k;
+  return -1;
+}
+
+/* ---------- жеребьёвка ---------- */
+function drawIdx(){
+  for(var i=0;i<S.players.length;i++) if(!S.players[i].sector) return i;
+  return -1;
+}
+function takeSector(v){
+  var i=drawIdx();
+  if(i<0 || takenBy(v)>=0) return;
+  S.players[i].sector=v;
+  say(S.players[i].name+' — сектор '+v);
+  if(drawIdx()<0){
+    S.phase='game'; keepAwake(true);
+    setTimeout(function(){ say('Начинаем. Ходит '+S.players[0].name); },900);
+  }
+  save(); render();
+}
+function drawBack(){
+  for(var i=S.players.length-1;i>=0;i--) if(S.players[i].sector){ S.players[i].sector=0; break; }
+  S.phase='draw'; save(); render();
+}
+function drawSkip(){
+  var i=drawIdx();
+  if(i<0) return;
+  var me=S.players.splice(i,1)[0];
+  S.players.push(me);
+  save(); render();
+}
+function shuffleDraw(){ shuffleList(); save(); render(); }
+function viewDraw(){
+  var cur=drawIdx();
+  var h='<h1 style="margin-bottom:2px">Жеребьёвка</h1><p class="sub">Кидаем по одному — куда попал, тот сектор твой</p>';
+  for(var i=0;i<S.players.length;i++){
+    var p=S.players[i], now=(i===cur);
+    h+='<div class="card'+(now?' now':'')+'" style="margin-bottom:8px"><div class="chead">';
+    h+='<div class="sect">'+(p.sector?p.sector:'—')+'</div>';
+    h+='<div class="nm"><b>'+esc(p.name)+'</b><span>'+(p.sector?'сектор занят':(now?'кидает сейчас':'ждёт очереди'))+'</span></div>';
+    h+='</div></div>';
+  }
+  h+='<div class="who" style="margin:14px 0 8px">жми сектор, куда попал '+esc(S.players[cur].name)+':</div>';
+  h+=boardSVG('takeSector', function(v){ return takenBy(v)>=0; });
+  h+='<p class="hint">Занятые сектора погашены. Попал в занятый, в центр или мимо — перебрасывает.</p>';
+  h+='<div class="bar">';
+  h+='<button onclick="drawSkip()">Пусть кинет следующий</button>';
+  h+='<button onclick="drawBack()">Отменить номер</button>';
+  h+='<button onclick="shuffleDraw()">Перемешать порядок</button>';
+  h+='<button onclick="openScreen(\'setup\')">В главное меню</button>';
+  h+='</div>';
+  return h;
+}
+
+/* ---------- смена сектора вручную ---------- */
+function openEdit(i){ editIdx=i; screenName='edit'; render(); window.scrollTo(0,0); }
+function editTake(v){
+  if(takenBy(v)>=0) return;
+  snap(); S.players[editIdx].sector=v; screenName=''; editIdx=-1; save(); render();
+}
+function viewEdit(){
+  var p=S.players[editIdx];
+  var h='<h1>Сектор игрока</h1><p class="sub">'+esc(p.name)+' — сейчас '+p.sector+'</p>';
+  h+=boardSVG('editTake', function(v){ return takenBy(v)>=0 && takenBy(v)!==editIdx; });
+  h+='<p class="hint">Занятые чужие сектора погашены.</p>';
+  h+='<button class="btn-ghost" style="margin-top:14px" onclick="closeScreen()">Оставить как было</button>';
+  return h;
+}
+
+/* ---------- ход ---------- */
+function snap(){
+  S.undo.push(JSON.stringify({p:S.players,t:S.turn,d:S.darts,w:S.winCounted}));
+  if(S.undo.length>80) S.undo.shift();
+}
+function undo(){
+  if(!S.undo.length) return;
+  var st=JSON.parse(S.undo.pop());
+  S.players=st.p; S.turn=st.t; S.darts=st.d; S.pick=-1;
+  S.winCounted = !!st.w;
+  if(!S.winCounted) unrecordHistory();
+  save(); render();
+}
+function aliveCount(){ var n=0; for(var i=0;i<S.players.length;i++) if(S.players[i].lives>0) n++; return n; }
+function nextTurn(){
+  for(var s=1;s<=S.players.length;s++){
+    var k=(S.turn+s)%S.players.length;
+    if(S.players[k].lives>0){ S.turn=k; return; }
+  }
+}
+function pickTarget(k){ S.pick=k; save(); render(); }
+function pickCancel(){ S.pick=-1; save(); render(); }
+
+function mark(kind,target,amount){
+  snap();
+  var me=S.players[S.turn], label='мимо', killed=[], before=[];
+  for(var b=0;b<S.players.length;b++) before.push(S.players[b].lives);
+
+  me.darts++;
+  if(kind==='green'){ me.lives++; me.green++; label='зелёное 25'; say('Плюс жизнь, '+me.name); }
+  else if(kind==='bull'){
+    var hitCount=0;
+    for(var i=0;i<S.players.length;i++) if(i!==S.turn && S.players[i].lives>0){ S.players[i].lives--; hitCount++; }
+    me.bull++; me.dmg+=hitCount;
+    label='центр 50 — всем −1';
+    say('Центр! Минус жизнь у всех');
+  }
+  else if(kind==='hit'){
+    var n=amount||1, t=S.players[target];
+    t.lives=Math.max(0,t.lives-n);
+    me.dmg+=n;
+    label='−'+n+' '+t.name;
+    say(n===1 ? ('Минус жизнь, '+t.name) : ('Минус '+n+' у '+t.name));
+  }
+  else { me.miss++; }
+
+  for(var c=0;c<S.players.length;c++) if(before[c]>0 && S.players[c].lives<=0) killed.push(S.players[c].name);
+  if(killed.length){
+    buzz([60,50,60]);
+    setTimeout(function(){ say(killed.join(' и ')+(killed.length>1?' выбывают':' выбывает')); },1100);
+  }
+
+  S.pick=-1;
+  S.darts.push(label);
+  if(S.darts.length>=3) endTurn(true);
+  checkWin();
+  save(); render();
+}
+function endTurn(silent){
+  if(!silent) snap();
+  var me=S.players[S.turn];
+  me.last = S.darts.slice();
+  S.darts=[]; S.pick=-1;
+  if(aliveCount()>1){
+    nextTurn();
+    buzz([35]);
+    var nm=S.players[S.turn].name;
+    setTimeout(function(){ say('Ходит '+nm); }, silent?1800:500);
+  }
+  save(); if(!silent) render();
+}
+function checkWin(){
+  if(S.winCounted || S.players.length<2) return;
+  if(aliveCount()!==1) return;
+  for(var i=0;i<S.players.length;i++) if(S.players[i].lives>0){
+    S.players[i].wins++; S.winCounted=true;
+    recordHistory(i);
+    var nm=S.players[i].name;
+    buzz([80,60,80,60,120]);
+    setTimeout(function(){ say('Победил '+nm); },1900);
+    keepAwake(false);
+  }
+}
+function shuffle(){
+  snap();
+  var a=S.players;
+  for(var i=a.length-1;i>0;i--){ var k=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[k]; a[k]=t; }
+  S.turn=0; S.darts=[]; S.pick=-1;
+  if(S.players[S.turn].lives<=0) nextTurn();
+  save(); render();
+}
+
+/* ---------- экран игры ---------- */
+function view(){
+  var alive=[];
+  for(var i=0;i<S.players.length;i++) if(S.players[i].lives>0) alive.push(i);
+  var over = alive.length===1 && S.players.length>1;
+
+  var h='<h1 style="margin-bottom:12px">Жизни</h1>';
+  if(over){
+    h+='<div class="win"><b>Победил '+esc(S.players[alive[0]].name)+'</b><span>Остальные выбиты</span>';
+    h+='<button onclick="again()">Ещё партия</button>';
+    h+='<button class="alt" onclick="openScreen(\'stats\')">Итоги партии</button></div>';
+  }
+
+  for(var i=0;i<S.players.length;i++){
+    var p=S.players[i], out=p.lives<=0, now=(!over && !out && S.turn===i);
+    var tappable = (!over && !out && !now);
+    h+='<div class="card'+(out?' out':'')+(now?' now':'')+(tappable?' tap':'')+'"'
+      +(tappable?' onclick="'+(S.rings?'pickTarget('+i+')':'mark(\'hit\','+i+')')+'"':'')+'>';
+    h+='<div class="chead">';
+    h+='<div class="sect" onclick="event.stopPropagation();openEdit('+i+')">'+p.sector+'</div>';
+    h+='<div class="nm"><b>'+esc(p.name)+(p.wins?' <span class="wins">'+p.wins+' побед</span>':'')+'</b>';
+    if(out) h+='<span>выбыл</span>';
+    else if(now) h+='<span>ходит сейчас · его сектор '+p.sector+'</span>';
+    else h+='<span>кидает '+(i+1)+'-м'+(p.last.length?' · прошлый: '+esc(p.last.join(', ')):'')+'</span>';
+    h+='</div>';
+    h+='<div class="lives"><div class="n">'+p.lives+'</div><div class="h">&hearts;</div></div>';
+    h+='</div>';
+
+    if(now){
+      h+='<div class="throw"><div class="slots">';
+      for(var d=0;d<3;d++){
+        var v=S.darts[d];
+        h+='<div class="slot'+(v?' done':'')+'">'+(v?esc(v):'дротик '+(d+1))+'</div>';
+      }
+      h+='</div>';
+      h+='<div class="trow">';
+      h+='<button class="gr" onclick="mark(\'green\')">зелёное 25</button>';
+      h+='<button class="bl" onclick="mark(\'bull\')">центр 50</button>';
+      h+='<button class="ms" onclick="mark(\'miss\')">мимо</button>';
+      h+='</div>';
+      if(S.rings && S.pick>=0 && S.pick!==i && S.players[S.pick].lives>0){
+        h+='<div class="who">попал в сектор '+S.players[S.pick].sector+' ('+esc(S.players[S.pick].name)+') — каким кольцом:</div>';
+        h+='<div class="trow">';
+        h+='<button class="bl" onclick="mark(\'hit\','+S.pick+',1)">обычное −1</button>';
+        h+='<button class="bl" onclick="mark(\'hit\','+S.pick+',2)">дубль −2</button>';
+        h+='<button class="bl" onclick="mark(\'hit\','+S.pick+',3)">трипл −3</button>';
+        h+='</div>';
+        h+='<button class="ms" style="width:100%" onclick="pickCancel()">не тот игрок — назад</button>';
+      } else {
+        var others='';
+        for(var k=0;k<S.players.length;k++){
+          if(k===i || S.players[k].lives<=0) continue;
+          var act = S.rings ? 'pickTarget('+k+')' : 'mark(\'hit\','+k+')';
+          others+='<button onclick="'+act+'">'+esc(S.players[k].name)+' ('+S.players[k].sector+')</button>';
+        }
+        if(others){
+          h+='<div class="who">попал в чужой сектор — чей он:</div>';
+          h+='<div class="chips">'+others+'</div>';
+        }
+      }
+      h+='<button class="pass" onclick="endTurn()">Ход завершён — дальше</button>';
+      h+='</div>';
+    }
+    h+='</div>';
+  }
+
+  h+='<div class="bar">';
+  h+='<button onclick="undo()"'+(S.undo.length?'':' disabled style="opacity:.4"')+'>Отменить</button>';
+  h+='<button onclick="openScreen(\'stats\')">Итоги</button>';
+  h+='<button onclick="shuffle()">Перемешать</button>';
+  h+='<button onclick="again()">Ещё партия</button>';
+  h+='<button onclick="openScreen(\'rules\')">Правила</button>';
+  h+='<button onclick="openScreen(\'hist\')">Статистика</button>';
+  h+='<button class="wide" onclick="openScreen(\'setup\')">В главное меню</button>';
+  h+='</div>';
+  h+='<p class="note">Отмечай каждый дротик того, кто ходит: три отметки — и ход сам переходит следующему. Попал по чужому сектору — жми имя в списке под кнопками или карточку этого игрока ниже.</p>';
+  return h;
+}
+
+/* ---------- итоги ---------- */
+function viewStats(){
+  var h='<h1>Итоги</h1><p class="sub">Эта партия и счёт вечера</p>';
+  h+='<table class="tbl"><tr><th>Игрок</th><th>жизни</th><th>снял</th><th>центр</th><th>зелён.</th><th>мимо</th><th>побед</th></tr>';
+  var order=S.players.slice().sort(function(a,b){ return (b.lives-a.lives) || (b.dmg-a.dmg); });
+  for(var i=0;i<order.length;i++){
+    var p=order[i];
+    h+='<tr><td>'+esc(p.name)+'</td><td>'+p.lives+'</td><td>'+p.dmg+'</td><td>'+p.bull+'</td><td>'+p.green+'</td><td>'+p.miss+'</td><td>'+p.wins+'</td></tr>';
+  }
+  h+='</table>';
+  h+='<p class="note"><b>снял</b> — сколько жизней отнял у других за партию, вместе с центром.<br><b>побед</b> — счёт вечера, копится, пока не начнёшь новую партию из главного меню.</p>';
+  h+='<button class="btn-main" onclick="closeScreen()">Назад к игре</button>';
+  h+='<button class="btn-ghost" style="margin-top:8px" onclick="openScreen(\'hist\')">Статистика за всё время</button>';
+  return h;
+}
+
+/* ---------- статистика за всё время ---------- */
+function viewHist(){
+  var rows=[];
+  for(var k in hist) if(hist.hasOwnProperty(k) && hist[k].games>0) rows.push(hist[k]);
+  rows.sort(function(a,b){ return (b.wins-a.wins) || (b.games-a.games) || (b.dmg-a.dmg); });
+
+  var h='<h1>Статистика</h1><p class="sub">За всё время, по всем вечерам</p>';
+  if(!rows.length){
+    h+='<p class="note" style="margin-top:0">Пока пусто. Первая доигранная партия попадёт сюда.</p>';
+  } else {
+    h+='<table class="tbl"><tr><th>Игрок</th><th>партий</th><th>побед</th><th>%</th><th>снял</th><th>центр</th><th>зелён.</th><th>мимо</th></tr>';
+    for(var i=0;i<rows.length;i++){
+      var r=rows[i], pc=r.games? Math.round(100*r.wins/r.games):0;
+      h+='<tr><td>'+esc(r.name)+'</td><td>'+r.games+'</td><td>'+r.wins+'</td><td>'+pc+'</td><td>'+r.dmg+'</td><td>'+r.bull+'</td><td>'+r.green+'</td><td>'+r.miss+'</td></tr>';
+    }
+    h+='</table>';
+    h+='<p class="note"><b>%</b> — доля выигранных партий.<br><b>снял</b> — сколько жизней отнял у соперников за всё время.<br>Игроков различаю по имени: пишите одинаково, иначе статистика раздвоится.</p>';
+  }
+  h+='<button class="btn-main" onclick="closeScreen()">Назад</button>';
+  if(rows.length){
+    /* два нажатия вместо всплывающего вопроса — в приложении такие окна не показываются */
+    h+= clearArm
+      ? '<button class="btn-ghost" style="margin-top:8px;border-color:#b03a3a;color:#ff8a8a" onclick="clearHist()">Точно стереть? Нажми ещё раз</button>'
+        +'<button class="btn-ghost" style="margin-top:8px" onclick="clearArm=false;render()">Не стирать</button>'
+      : '<button class="btn-ghost" style="margin-top:8px" onclick="clearArm=true;render()">Очистить статистику</button>';
+  }
+  return h;
+}
+function clearHist(){
+  hist={}; saveHist(); if(S) S.lastRecord=null; clearArm=false; render();
+}
+
+/* ---------- правила ---------- */
+function viewRules(){
+  var ringsOn = S ? S.rings : setup.rings;
+  var h='<h1>Правила</h1><p class="sub">Дартс на жизни — для тех, кто играет впервые</p>';
+  h+='<h2>Цель</h2><p class="note" style="margin-top:0">Остаться последним, у кого остались жизни. В начале у всех поровну — сколько выбрали на первом экране.</p>';
+  h+='<h2>Свой сектор</h2><p class="note" style="margin-top:0">У каждого игрока свой номер на мишени. Это его дом: по нему бьют соперники, а он бьёт по чужим. Номера либо раздаются сами и разводятся по разным краям мишени, либо разыгрываются броском — каждый кидает дротик, куда попал, тот сектор его.</p>';
+  h+='<h2>Как теряют жизни</h2><p class="note" style="margin-top:0">Попал в чужой сектор — минус жизнь его хозяину. По классике засчитывают только удвоение, то есть узкое внешнее кольцо сектора; договоритесь на берегу, считаете вы весь сектор или одно кольцо.'
+    + (ringsOn ? '<br>У вас включено «кольца бьют сильнее»: обычное попадание −1, удвоение −2, утроение −3.' : '') + '</p>';
+  h+='<h2>Центр мишени</h2><p class="note" style="margin-top:0"><b>Зелёное кольцо (25)</b> — плюс жизнь себе. Потолка нет, можно уйти выше стартовых.<br><b>Красный центр (50)</b> — минус жизнь всем соперникам сразу, себе ничего.</p>';
+  h+='<h2>Ход</h2><p class="note" style="margin-top:0">Кидают по очереди, у каждого три дротика за подход. В приложении отмечают каждый дротик: зелёное, центр, мимо или карточка того, в чей сектор попал. После третьей отметки ход сам уходит следующему.</p>';
+  h+='<h2>Конец</h2><p class="note" style="margin-top:0">У кого жизни кончились — выбывает, его пропускают. Остался один — он победил. «Ещё партия» начинает заново с теми же игроками, победы копятся в счёте вечера.</p>';
+  h+='<h2>Если ошиблись</h2><p class="note" style="margin-top:0">Кнопка «Отменить» откатывает по одному нажатию. Сектор можно поменять — нажми на цифру рядом с именем и ткни новый на мишени.</p>';
+  h+='<button class="btn-main" onclick="closeScreen()">Понятно, назад</button>';
+  return h;
+}
+
+/* ---------- переключение экранов ---------- */
+function openScreen(n){ screenName=n; render(); window.scrollTo(0,0); }
+function closeScreen(){ screenName=''; editIdx=-1; render(); }
+
+function render(){
+  var h;
+  if(screenName==='rules') h=viewRules();
+  else if(screenName==='hist') h=viewHist();
+  else if(screenName==='stats' && S) h=viewStats();
+  else if(screenName==='edit' && S && editIdx>=0) h=viewEdit();
+  else if(screenName==='setup' || !S) h=viewSetup();
+  else h = (S.phase==='draw' ? viewDraw() : view());
+  document.getElementById('app').innerHTML=h;
+  save();
+}
+load(); loadHist();
+if(S){
+  if(!S.darts) S.darts=[];
+  if(S.pick===undefined) S.pick=-1;
+  if(S.voice===undefined) S.voice=setup.voice;
+  for(var q=0;q<S.players.length;q++){
+    var pp=S.players[q];
+    if(!pp.last) pp.last=[];
+    if(pp.wins===undefined) pp.wins=0;
+    if(pp.dmg===undefined) blankStats(pp);
+  }
+  if(S.phase==='game') keepAwake(true);
+}
+render();
+</script>
+</body>
+</html>
