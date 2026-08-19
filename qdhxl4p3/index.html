@@ -155,7 +155,8 @@ function loadHist(){
 function nameId(n){ return n.trim().toLowerCase(); }
 function histRow(name){
   var id=nameId(name);
-  if(!hist[id]) hist[id]={ name:name.trim(), games:0, wins:0, dmg:0, bull:0, green:0, miss:0, darts:0 };
+  if(!hist[id]) hist[id]={ name:name.trim(), games:0, wins:0, dmg:0, self:0, bull:0, green:0, miss:0, darts:0 };
+  if(hist[id].self===undefined) hist[id].self=0;   /* записи, сделанные до кнопки «в себя» */
   hist[id].name=name.trim();
   return hist[id];
 }
@@ -165,9 +166,9 @@ function recordHistory(winnerIdx){
   for(var i=0;i<S.players.length;i++){
     var p=S.players[i];
     var d={ id:nameId(p.name), games:1, wins:(i===winnerIdx?1:0),
-            dmg:p.dmg, bull:p.bull, green:p.green, miss:p.miss, darts:p.darts };
+            dmg:p.dmg, self:p.self||0, bull:p.bull, green:p.green, miss:p.miss, darts:p.darts };
     var r=histRow(p.name);
-    r.games+=d.games; r.wins+=d.wins; r.dmg+=d.dmg; r.bull+=d.bull; r.green+=d.green; r.miss+=d.miss; r.darts+=d.darts;
+    r.games+=d.games; r.wins+=d.wins; r.dmg+=d.dmg; r.self+=d.self; r.bull+=d.bull; r.green+=d.green; r.miss+=d.miss; r.darts+=d.darts;
     rec.push(d);
   }
   S.lastRecord=rec; saveHist();
@@ -177,7 +178,7 @@ function unrecordHistory(){
   for(var i=0;i<S.lastRecord.length;i++){
     var d=S.lastRecord[i], r=hist[d.id];
     if(!r) continue;
-    r.games-=d.games; r.wins-=d.wins; r.dmg-=d.dmg; r.bull-=d.bull; r.green-=d.green; r.miss-=d.miss; r.darts-=d.darts;
+    r.games-=d.games; r.wins-=d.wins; r.dmg-=d.dmg; r.self-=(d.self||0); r.bull-=d.bull; r.green-=d.green; r.miss-=d.miss; r.darts-=d.darts;
     if(r.games<=0) delete hist[d.id];
   }
   S.lastRecord=null; saveHist();
@@ -297,7 +298,7 @@ function deal(n,skip20){
   for(var j=out.length-1;j>0;j--){ var k=Math.floor(Math.random()*(j+1)); var t=out[j]; out[j]=out[k]; out[k]=t; }
   return out;
 }
-function blankStats(p){ p.dmg=0; p.bull=0; p.green=0; p.miss=0; p.darts=0; return p; }
+function blankStats(p){ p.dmg=0; p.self=0; p.bull=0; p.green=0; p.miss=0; p.darts=0; return p; }
 function start(){
   var byThrow = setup.draw==='throw';
   var sec = byThrow ? [] : deal(setup.names.length,setup.skip20), pl=[];
@@ -468,9 +469,15 @@ function mark(kind,target,amount){
   else if(kind==='hit'){
     var n=amount||1, t=S.players[target];
     t.lives=Math.max(0,t.lives-n);
-    me.dmg+=n;
-    label='−'+n+' '+t.name;
-    say(n===1 ? ('Минус жизнь, '+t.name) : ('Минус '+n+' у '+t.name));
+    if(target===S.turn){          /* попал в свой сектор — жизнь снимается с себя */
+      me.self+=n;
+      label='−'+n+' себе';
+      say(n===1 ? 'Минус жизнь себе' : ('Минус '+n+' себе'));
+    } else {
+      me.dmg+=n;
+      label='−'+n+' '+t.name;
+      say(n===1 ? ('Минус жизнь, '+t.name) : ('Минус '+n+' у '+t.name));
+    }
   }
   else { me.miss++; }
 
@@ -482,7 +489,8 @@ function mark(kind,target,amount){
 
   S.pick=-1;
   S.darts.push(label);
-  if(S.darts.length>=3) endTurn(true);
+  /* сам себя добил — дальше не кидает, ход уходит следующему */
+  if(S.darts.length>=3 || me.lives<=0) endTurn(true);
   checkWin();
   save(); render();
 }
@@ -560,14 +568,17 @@ function view(){
       h+='<button class="bl" onclick="mark(\'bull\')">центр 50</button>';
       h+='<button class="ms" onclick="mark(\'miss\')">мимо</button>';
       h+='</div>';
-      if(S.rings && S.pick>=0 && S.pick!==i && S.players[S.pick].lives>0){
-        h+='<div class="who">попал в сектор '+S.players[S.pick].sector+' ('+esc(S.players[S.pick].name)+') — каким кольцом:</div>';
+      h+='<div class="trow"><button class="bl" onclick="'+(S.rings?'pickTarget('+i+')':'mark(\'hit\','+i+')')
+        +'">попал в себя — свой сектор '+p.sector+'</button></div>';
+      if(S.rings && S.pick>=0 && S.players[S.pick].lives>0){
+        h+='<div class="who">попал в '+(S.pick===i?'свой сектор ':'сектор ')+S.players[S.pick].sector
+          +' ('+(S.pick===i?'минус себе':esc(S.players[S.pick].name))+') — каким кольцом:</div>';
         h+='<div class="trow">';
         h+='<button class="bl" onclick="mark(\'hit\','+S.pick+',1)">обычное −1</button>';
         h+='<button class="bl" onclick="mark(\'hit\','+S.pick+',2)">дубль −2</button>';
         h+='<button class="bl" onclick="mark(\'hit\','+S.pick+',3)">трипл −3</button>';
         h+='</div>';
-        h+='<button class="ms" style="width:100%" onclick="pickCancel()">не тот игрок — назад</button>';
+        h+='<button class="ms" style="width:100%" onclick="pickCancel()">не тот сектор — назад</button>';
       } else {
         var others='';
         for(var k=0;k<S.players.length;k++){
@@ -595,21 +606,21 @@ function view(){
   h+='<button onclick="openScreen(\'hist\')">Статистика</button>';
   h+='<button class="wide" onclick="openScreen(\'setup\')">В главное меню</button>';
   h+='</div>';
-  h+='<p class="note">Отмечай каждый дротик того, кто ходит: три отметки — и ход сам переходит следующему. Попал по чужому сектору — жми имя в списке под кнопками или карточку этого игрока ниже.</p>';
+  h+='<p class="note">Отмечай каждый дротик того, кто ходит: три отметки — и ход сам переходит следующему. Попал по чужому сектору — жми имя в списке под кнопками или карточку этого игрока ниже. Попал в свой сектор — кнопка «попал в себя», жизнь снимется с тебя.</p>';
   return h;
 }
 
 /* ---------- итоги ---------- */
 function viewStats(){
   var h='<h1>Итоги</h1><p class="sub">Эта партия и счёт вечера</p>';
-  h+='<table class="tbl"><tr><th>Игрок</th><th>жизни</th><th>снял</th><th>центр</th><th>зелён.</th><th>мимо</th><th>побед</th></tr>';
+  h+='<table class="tbl"><tr><th>Игрок</th><th>жизни</th><th>снял</th><th>в себя</th><th>центр</th><th>зелён.</th><th>мимо</th><th>побед</th></tr>';
   var order=S.players.slice().sort(function(a,b){ return (b.lives-a.lives) || (b.dmg-a.dmg); });
   for(var i=0;i<order.length;i++){
     var p=order[i];
-    h+='<tr><td>'+esc(p.name)+'</td><td>'+p.lives+'</td><td>'+p.dmg+'</td><td>'+p.bull+'</td><td>'+p.green+'</td><td>'+p.miss+'</td><td>'+p.wins+'</td></tr>';
+    h+='<tr><td>'+esc(p.name)+'</td><td>'+p.lives+'</td><td>'+p.dmg+'</td><td>'+(p.self||0)+'</td><td>'+p.bull+'</td><td>'+p.green+'</td><td>'+p.miss+'</td><td>'+p.wins+'</td></tr>';
   }
   h+='</table>';
-  h+='<p class="note"><b>снял</b> — сколько жизней отнял у других за партию, вместе с центром.<br><b>побед</b> — счёт вечера, копится, пока не начнёшь новую партию из главного меню.</p>';
+  h+='<p class="note"><b>снял</b> — сколько жизней отнял у других за партию, вместе с центром.<br><b>в себя</b> — сколько жизней потерял на попаданиях в свой сектор.<br><b>побед</b> — счёт вечера, копится, пока не начнёшь новую партию из главного меню.</p>';
   h+='<button class="btn-main" onclick="closeScreen()">Назад к игре</button>';
   h+='<button class="btn-ghost" style="margin-top:8px" onclick="openScreen(\'hist\')">Статистика за всё время</button>';
   return h;
@@ -625,13 +636,13 @@ function viewHist(){
   if(!rows.length){
     h+='<p class="note" style="margin-top:0">Пока пусто. Первая доигранная партия попадёт сюда.</p>';
   } else {
-    h+='<table class="tbl"><tr><th>Игрок</th><th>партий</th><th>побед</th><th>%</th><th>снял</th><th>центр</th><th>зелён.</th><th>мимо</th></tr>';
+    h+='<table class="tbl"><tr><th>Игрок</th><th>партий</th><th>побед</th><th>%</th><th>снял</th><th>в себя</th><th>центр</th><th>зелён.</th><th>мимо</th></tr>';
     for(var i=0;i<rows.length;i++){
       var r=rows[i], pc=r.games? Math.round(100*r.wins/r.games):0;
-      h+='<tr><td>'+esc(r.name)+'</td><td>'+r.games+'</td><td>'+r.wins+'</td><td>'+pc+'</td><td>'+r.dmg+'</td><td>'+r.bull+'</td><td>'+r.green+'</td><td>'+r.miss+'</td></tr>';
+      h+='<tr><td>'+esc(r.name)+'</td><td>'+r.games+'</td><td>'+r.wins+'</td><td>'+pc+'</td><td>'+r.dmg+'</td><td>'+(r.self||0)+'</td><td>'+r.bull+'</td><td>'+r.green+'</td><td>'+r.miss+'</td></tr>';
     }
     h+='</table>';
-    h+='<p class="note"><b>%</b> — доля выигранных партий.<br><b>снял</b> — сколько жизней отнял у соперников за всё время.<br>Игроков различаю по имени: пишите одинаково, иначе статистика раздвоится.</p>';
+    h+='<p class="note"><b>%</b> — доля выигранных партий.<br><b>снял</b> — сколько жизней отнял у соперников за всё время.<br><b>в себя</b> — сколько жизней потерял на своём секторе.<br>Игроков различаю по имени: пишите одинаково, иначе статистика раздвоится.</p>';
   }
   h+='<button class="btn-main" onclick="closeScreen()">Назад</button>';
   if(rows.length){
@@ -654,7 +665,8 @@ function viewRules(){
   h+='<h2>Цель</h2><p class="note" style="margin-top:0">Остаться последним, у кого остались жизни. В начале у всех поровну — сколько выбрали на первом экране.</p>';
   h+='<h2>Свой сектор</h2><p class="note" style="margin-top:0">У каждого игрока свой номер на мишени. Это его дом: по нему бьют соперники, а он бьёт по чужим. Номера либо раздаются сами и разводятся по разным краям мишени, либо разыгрываются броском — каждый кидает дротик, куда попал, тот сектор его.</p>';
   h+='<h2>Как теряют жизни</h2><p class="note" style="margin-top:0">Попал в чужой сектор — минус жизнь его хозяину. По классике засчитывают только удвоение, то есть узкое внешнее кольцо сектора; договоритесь на берегу, считаете вы весь сектор или одно кольцо.'
-    + (ringsOn ? '<br>У вас включено «кольца бьют сильнее»: обычное попадание −1, удвоение −2, утроение −3.' : '') + '</p>';
+    + (ringsOn ? '<br>У вас включено «кольца бьют сильнее»: обычное попадание −1, удвоение −2, утроение −3.' : '')
+    + '<br>Попал в свой собственный сектор — минус жизнь себе, на то же правило.</p>';
   h+='<h2>Центр мишени</h2><p class="note" style="margin-top:0"><b>Зелёное кольцо (25)</b> — плюс жизнь себе. Потолка нет, можно уйти выше стартовых.<br><b>Красный центр (50)</b> — минус жизнь всем соперникам сразу, себе ничего.</p>';
   h+='<h2>Ход</h2><p class="note" style="margin-top:0">Кидают по очереди, у каждого три дротика за подход. В приложении отмечают каждый дротик: зелёное, центр, мимо или карточка того, в чей сектор попал. После третьей отметки ход сам уходит следующему.</p>';
   h+='<h2>Конец</h2><p class="note" style="margin-top:0">У кого жизни кончились — выбывает, его пропускают. Остался один — он победил. «Ещё партия» начинает заново с теми же игроками, победы копятся в счёте вечера.</p>';
@@ -688,6 +700,7 @@ if(S){
     if(!pp.last) pp.last=[];
     if(pp.wins===undefined) pp.wins=0;
     if(pp.dmg===undefined) blankStats(pp);
+    if(pp.self===undefined) pp.self=0;
   }
   if(S.phase==='game') keepAwake(true);
 }
